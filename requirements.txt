@@ -146,3 +146,4 @@ xgboost==2.1.4
 xxhash==3.5.0
 xyzservices==2025.1.0
 yarl==1.18.3
+Gunicorn
