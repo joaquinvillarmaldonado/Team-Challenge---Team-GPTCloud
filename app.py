@@ -14,7 +14,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET'])
 def hello():
     return '''
-        Bienvenido a la API de predicción del modelo de lluvia.
+        Bienvenido a la API de predicción del modelo de lluvia del Team GPTCloud.
         Para hacer una predicción, usa el endpoint /api/v1/predict con un método GET o POST.
         Para la predicción con GET, los parámetros son: DAY, MONTH, YEAR, TMAX, TMIN.
         Para hacer un retrain del modelo, usa el endpoint /api/v1/retrain.
