@@ -1,14 +1,14 @@
 from flask import Flask, jsonify, request
 import os
 import pickle
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Lasso
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
-import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, roc_auc_score
+import joblib
 
-# os.chdir(os.path.dirname(__file__))
-
+# Crear la aplicación Flask
 app = Flask(__name__)
 
 # Enruta la landing page (endpoint /)
@@ -81,22 +81,46 @@ def retrain():
     if os.path.exists("data/Advertising_new.csv"):
         data = pd.read_csv('data/Advertising_new.csv')
 
-        X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=['sales']),
-                                                        data['sales'],
-                                                        test_size = 0.20,
-                                                        random_state=42)
+        X = data.drop(columns=['sales'])  # Características (features)
+        y = data['sales']  # Etiqueta (target)
 
-        model = Lasso(alpha=6000)
+        # Dividir los datos en entrenamiento y prueba
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Inicializar y entrenar el modelo de regresión logística
+        model = LogisticRegression(max_iter=1000)
         model.fit(X_train, y_train)
-        rmse = np.sqrt(mean_squared_error(y_test, model.predict(X_test)))
-        mape = mean_absolute_percentage_error(y_test, model.predict(X_test))
-        model.fit(data.drop(columns=['sales']), data['sales'])
-        with open('ad_model.pkl', 'wb') as f:
+
+        # Realizar predicciones sobre el conjunto de prueba
+        y_pred = model.predict(X_test)
+
+        # Calcular las métricas de evaluación
+        accuracy = accuracy_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        auc_roc = roc_auc_score(y_test, y_pred)
+
+        # Reentrenar el modelo con todos los datos
+        model.fit(X, y)
+
+        # Guardar el modelo entrenado
+        with open('best_model.pkl', 'wb') as f:
             pickle.dump(model, f)
 
-        return f"Model retrained. New evaluation metric RMSE: {str(rmse)}, MAPE: {str(mape)}"
+        # Devolver las métricas de evaluación
+        return jsonify({
+            'message': 'Modelo reentrenado exitosamente.',
+            'metrics': {
+                'accuracy': accuracy,
+                'recall': recall,
+                'precision': precision,
+                'f1_score': f1,
+                'roc_auc': auc_roc
+            }
+        })
     else:
-        return f"<h2>New data for retrain NOT FOUND. Nothing done!</h2>"
+        return jsonify({'message': 'No se encontraron datos nuevos para reentrenar el modelo.'}), 404
 
 # Tercer endpoint (comentado inicialmente)
 # @app.route('/api/v1/test', methods=['GET'])
