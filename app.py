@@ -6,7 +6,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, roc_auc_score
-import joblib
 
 # Crear la aplicación Flask
 app = Flask(__name__)
@@ -78,11 +77,17 @@ def predict_post():
 # Enruta la funcion al endpoint /api/v1/retrain
 @app.route('/api/v1/retrain', methods=['GET'])
 def retrain():
-    if os.path.exists("data/Advertising_new.csv"):
-        data = pd.read_csv('data/Advertising_new.csv')
+    # Verificar si el archivo de datos existe
+    if os.path.exists("data/seattleWeather_1948-2017.csv"):
+        # Cargar los datos del archivo CSV
+        data = pd.read_csv('data/seattleWeather_1948-2017.csv')
 
-        X = data.drop(columns=['sales'])  # Características (features)
-        y = data['sales']  # Etiqueta (target)
+        # Eliminar cualquier fila con valores nulos o vacíos
+        data = data.dropna(subset=['DAY', 'MONTH', 'YEAR', 'TMAX', 'TMIN', 'RAIN'])
+
+        # Filtrar las columnas relevantes para el modelo
+        X = data[['DAY', 'MONTH', 'YEAR', 'TMAX', 'TMIN']]  # Características (features)
+        y = data['RAIN']  # Etiqueta (target)
 
         # Dividir los datos en entrenamiento y prueba
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -122,7 +127,7 @@ def retrain():
     else:
         return jsonify({'message': 'No se encontraron datos nuevos para reentrenar el modelo.'}), 404
 
-# Tercer endpoint (comentado inicialmente)
+# Tercer endpoint comentado (para prueba)
 # @app.route('/api/v1/test', methods=['GET'])
 # def test():
 #     return jsonify({'message': 'Este es un endpoint de prueba.'})
