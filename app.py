@@ -128,9 +128,9 @@ def retrain():
         return jsonify({'message': 'No se encontraron datos nuevos para reentrenar el modelo.'}), 404
 
 # Tercer endpoint comentado (para prueba)
-# @app.route('/api/v1/test', methods=['GET'])
-# def test():
-#     return jsonify({'message': 'Este es un endpoint de prueba.'})
+@app.route('/api/v1/test', methods=['GET'])
+def test():
+    return jsonify({'message': 'Este es un endpoint de prueba.'})
 
 if __name__ == '__main__':
     app.run(debug=True)
